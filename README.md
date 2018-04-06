@@ -3,6 +3,13 @@
 ###### Course: CSC 535 Data Mining
 ###### Missouri State University
 ###### Authors: Sidlinskaya, Sutton
+
+Datasets:
+http://fimi.ua.ac.be/data/
+https://www.cse.buffalo.edu//faculty/azhang/Teaching/index.html
+https://www.kaggle.com/c/instacart-market-basket-analysis/data
+
+
  
  #### Apriori Algorithm for Association Rules (page 173)
  ```

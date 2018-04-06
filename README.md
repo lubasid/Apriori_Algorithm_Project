@@ -6,6 +6,7 @@
 
 Datasets:
 - http://fimi.ua.ac.be/data/
+- http://www.cs.uef.fi/~whamalai/datasets.html
 - https://www.cse.buffalo.edu//faculty/azhang/Teaching/index.html
 - https://www.kaggle.com/c/instacart-market-basket-analysis/data
 

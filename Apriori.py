@@ -18,7 +18,10 @@ def apriori(transactions, dataset, min_support):
     support_data = get_initial_support(dataset)
     initial_itemsets = get_initial_itemset(support_data, min_support)
 
-    L.append(initial_itemsets)
+    print(initial_itemsets)
+    print(support_data)
+
+    #L.append(initial_itemsets)
 
     while True:
         k_value +=1
@@ -27,6 +30,19 @@ def apriori(transactions, dataset, min_support):
         L.append(L_subset)
 
         initial_itemsets = get_support(transactions, L_subset, min_support)
+
+        for item in initial_itemsets:
+            if get_support(transactions, )
+
+
+
+
+
+
+
+
+
+
         print ("the next itemset is : \n", initial_itemsets)
 
         if len(initial_itemsets) == 1:
@@ -40,23 +56,44 @@ def apriori(transactions, dataset, min_support):
         print ()
         print (k)
 
+        build_rules(L, transactions, min_support, 0.3)
 
-def build_rules():
-    print ()
+# Does not work. need a better way of getting support for items
+#
+def build_rules(large_itemsets, transactions, min_support, min_confidence):
+    rules = []
+    
+    for k_value in large_itemsets:
+        for itemset in large_itemsets:
+            for x in itemset:
+                confidence = get_support(transactions, itemset, min_support)/get_support(transactions, x, min_support) 
+                if  confidence > min_confidence:
+                    right = itemset
+                    right.remove(x)
+                    rules.append({'left': x, 'right': right})
 
-def get_support(transactions, itemset, min_support):
-    new_itemset = []
+    return rules
 
-    for item in itemset:
-        count = 0
-        for transaction in transactions:
-            if item.issubset(transaction):
-                count +=1
-        support = count / (len(transactions))
-        if support > min_support:
-            new_itemset.append(item)
 
-    return (new_itemset)
+def get_support(transactions, itemset):
+    # new_itemset = []
+
+    # for item in itemset:
+    #     count = 0
+    #     for transaction in transactions:
+    #         if item.issubset(transaction):
+    #             count +=1
+    #     support = count / (len(transactions))
+    #     if support > min_support:
+    #         new_itemset.append(item)
+
+    # return (new_itemset)
+
+    for transaction in transactions:
+        if itemset.issubset(transaction):
+            count +=1
+    return count / (len(transactions))
+
 
 
 def get_transactions(dataset):

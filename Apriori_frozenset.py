@@ -11,20 +11,19 @@
 #               in "Data Mining: Inroductory and Advanced Topics" on page 172.
 
 # Import packages
-# import numpy as np
 import pandas as pd
-# import scipy as sci
 import sys
 import time
+from tqdm import tqdm
 
 
 # Function which determines and returns the final large itemsets
 # based on the Apriori algorithm. 
-def apriori(transactions, dataset, min_support):
+def apriori(transactions, initial_candidates_list, min_support):
     k_value = 1 # Scan number, which determines the length of each large itemset.
     L = []      # Empty set for holding large itemsets.
-    # Initial candidates to begin apriori.       
-    candidates = get_initial_candidates(dataset)
+    # Initial candidates to begin apriori.   
+    candidates = initial_candidates_list
     # Termination condition, while candidates are not an empty set.
     while checkIfEmpty(candidates) == False:
        # Finds support and removes items which do not meet the min support.
@@ -33,28 +32,27 @@ def apriori(transactions, dataset, min_support):
         
         k_value +=1     # Increment K value,
         candidates = apriori_gen(transactions, large_itemsets, k_value)
+ 
     # Returns array of large itemsets
     return L
 
 
-
 # Does not work. need a better way of getting support for items
-#
-# def build_rules(large_itemsets, transactions, min_support, min_confidence):
-#     rules = []
+
+def build_rules(large_itemsets, transactions, min_support, min_confidence):
+    rules = []
+    min_c = 0.6
     
-#     for k_value in large_itemsets:
-#         for itemset in large_itemsets:
-#             for x in itemset:
-#                 confidence = get_support(transactions, itemset, min_support)/get_support(transactions, x, min_support) 
-#                 if  confidence > min_confidence:
-#                     right = itemset
-#                     right.remove(x)
-#                     rules.append({'left': x, 'right': right})
+    for k_value in large_itemsets:
+        for itemset in large_itemsets:
+            for x in itemset:
+                confidence = get_support(transactions, itemset, min_support)/get_support(transactions, x, min_support) 
+                if  confidence > min_confidence:
+                    right = itemset
+                    right.remove(x)
+                    rules.append({'left': x, 'right': right})
 
-#     return rules
-
-
+    return rules
 
 # Function which calculates the support for each item
 # and returns an array of items which meet the min support.
@@ -71,79 +69,50 @@ def get_support(transactions, itemset, min_support):
         # Calculate support, based on the length of transactions.
         support = count / (len(transactions))
         # If support meets criteria, add to set and return.
-        if support > min_support:
-            new_itemset.append(item)
-            
+        if support >= min_support:
+            new_itemset.append([(item), support])      
     return (new_itemset)
 
-
-# Function which returns the transactions of the dataset.
-def get_transactions(dataset):
-    transactions = []
-
-    for row in dataset.itertuples(index = False):
-        row_transaction = []
-        # For each value, if not null, then add value to 
-        # transaction array.
-        for value in row:
-            if (pd.isnull(value)):
-                continue
-            else:
-                row_transaction.append(value)
-        transactions.append(row_transaction)
-
-    return transactions
 
 # Function which determines the large itemsets based on the K Value.
 def apriori_gen(transactions, itemset, k):
 
-    candidate_set = []   
-    empty_set = []
-
+    candidate_set = []
     for I in itemset:
         for J in itemset:
-            if J != I:
+            
+            if J[0] != I[0]:
                 match_value_len = (k-2)
 
                 # We join any set with every set that has 
                 # the value of (match-value_len) items in common. 
                 if match_value_len >= 1:
-                    inter_set = set(I).intersection(J)
-                    if match_value_len == (len(inter_set)):
-                        joined = set(I).union(J)
+                    inter_set = set(I[0]).intersection(J[0])
 
+                    if match_value_len == (len(inter_set)):
+                        joined = set(I[0]).union(J[0])
+                 
                         # Check if item already in set.
                         if joined not in candidate_set:
-                            candidate_set.append(joined)
+                            candidate_set.append(frozenset(joined))
 
                 # When match_value_len == 0, we combine each item with
                 # all other items to create new candidates. 
                 else:
                     if match_value_len == 0:
-                        joined = set(I).union(J)
+                        joined = set(I[0]).union(J[0])
                         if joined not in candidate_set:
-                            candidate_set.append(joined)
+                            candidate_set.append(frozenset(joined))
     # Return new candidates.
     return candidate_set
 
 # Function which returns the initial candidates as an array of sets.
-def get_initial_candidates(dataset):
+def initial_candidates_set(transactions):
 
-    df = dataset
-    # Counts the nuber of times items appear.
-    count_table = df.apply(pd.value_counts)
-    count_table.reset_index(level=0, inplace=True)
-    
-    # count_table["support"] = count_table.sum(axis = 1) / (len(df))
-    # Create list from the individual items in table.
-    df_list = count_table["index"].tolist()
-
-    # For item in array, place in set, append to array & return.
+    print ()
     initial_candidates = []
-    for i in df_list:
-        k = set()
-        k.add(i)
-        initial_candidates.append(k)
+    for items in transactions:
+        frozen_items = frozenset(items)
 
     return initial_candidates
 
@@ -156,21 +125,39 @@ def checkIfEmpty(container):
     else:
         return True
 
+def read_data(input_file):
+    transactions = []
+    initial_candidates = set()
+
+    file = open(input_file, "r")
+    for line in file:
+        cur_line = frozenset(line.strip().rstrip(',').split(','))
+        transactions.append(cur_line)
+        for item in cur_line:
+            initial_candidates.add(frozenset([item]))
+    return transactions , initial_candidates
+
 def main():
     if len(sys.argv) > 2:
         start_time = time.time()
+
         file_name = sys.argv[1]                               # Accepts filename as cmd line argument.
         support_value = float(sys.argv[2])
-        dataset = pd.read_csv(file_name, header = None)
-    
-        transactions = get_transactions(dataset)
-        final_iteset = apriori(transactions, dataset, support_value)
-        for item in final_iteset:
-            print ("\n",item)
+        transactions, initial_candidates = read_data(file_name)
+
+        L_set = apriori(transactions, initial_candidates, support_value)
+        # build_rules(L_set)
+        print (L_set)
+
+
+        # Progress bar......
+        # for i in tqdm(range(10)):
+        #     time.sleep(3)
+
 
         finish_time = time.time()
         print ("\n-------------------------------------")
-        print('Exection Time: ' + str(finish_time - start_time))
+        print('Execution Time: ' + str(finish_time - start_time))
 
     else:
         print ("Please enter the correct cmd line arguments in the format:")

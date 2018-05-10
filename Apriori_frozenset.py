@@ -11,10 +11,8 @@
 #               in "Data Mining: Inroductory and Advanced Topics" on page 172.
 
 # Import packages
-import pandas as pd
 import sys
 import time
-from tqdm import tqdm
 
 
 # Function which determines and returns the final large itemsets
@@ -52,18 +50,14 @@ def build_rules(large_itemsets, min_confidence):
         for itemset in k_value:
             list_of_frozen_sets = []
             for individual_item in individual_items:
-                # print(individual_item[0], ' in ', itemset[0], '? ', individual_item[0].issubset(itemset[0]))
+              
                 if individual_item[0].issubset(itemset[0]):
                     list_of_frozen_sets.append(individual_item)
-            # print(itemset, ': ', list_of_frozen_sets)
 
             for item_ in list_of_frozen_sets:
                 confidence = itemset[1] / item_[1]
                 if confidence > min_confidence:
                     rules.append({'left': item_[0], 'right': itemset[0].difference(item_[0]), 'confidence': confidence})
-
-    # for rule in rules:             
-    #     print(rule)
 
     return rules
 
@@ -182,23 +176,9 @@ def main():
         transactions, initial_candidates = read_data(file_name)
 
         L_set = apriori(transactions, initial_candidates, support_value)
-        # build_rules(L_set)
-        # print (L_set)
 
-        # for k in L_set:
-        #     for l in k:
-        #         if len(l[0]) > 1:
-        #             print(l)
-
-        print()
-        print()
 
         print_rules(build_rules(L_set, confidence_value), 'products.csv')
-
-        # Progress bar......
-        # for i in tqdm(range(10)):
-        #     time.sleep(3)
-
 
         finish_time = time.time()
         print ("\n-------------------------------------")
